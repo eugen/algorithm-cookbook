@@ -4,6 +4,10 @@
     <title>Probabilistic Algorithms Coookbook</title>
     <meta charset="utf-8">
     <style>
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu);
       body {
         font-family: 'Ubuntu';
       }
@@ -47,6 +51,40 @@
       }
       .center {
         text-align: center;
+      }
+      .comment {
+        color: #FF4500;
+      }
+      code {
+        background-color: #FFF8F8 !important;
+        padding: 4px;
+      }
+      .remark-code, .remark-inline-code { 
+        font-family: 'Ubuntu Mono'; 
+      }
+      table.diagram {
+        border: 1px solid #FF4500;
+        border-spacing: 0;
+      }
+        table.diagram td{
+        padding: 0 15px 0 15px;
+        height: 1.3em;
+      }
+        table.diagram th {
+        color: #FF4500;
+        font-weight: normal;
+      }
+      table.diagram td.em {
+        background-color: #FFE8E8;
+      }
+      table.diagram {
+        font-family: "Ubuntu Mono";
+        display: inline-block;
+      } 
+
+      p+ul {
+      /* reduce spacing for lists folowing a paragraph */
+      margin-top: -0.8em;
       }
     </style>
   </head>
@@ -509,6 +547,207 @@ Element as the key, number of appearences as the value.
 * Require walking over the entire dataset to rebuild
 * Good theoretical complexity, large constant due to hashing
 * *Most importantly*, only apply for lots and lots of data
+
+---
+class: center, middle
+#Frequency Estimation
+---
+.chapter[Frequency Estimation]
+
+## Sample problems
+
+* How many requests has this IP done? Is it attacking us?
+* Is this one of the top most accessed articles?
+* How often is this exception occuring in the logs?
+
+---
+.chapter[Frequency Estimation]
+
+## Correct Solutions
+
+* Hash table
+* Many kinds of trees
+
+## Probabilistic Solutions
+
+* Count-Min Sketch
+* Lossy Count
+
+---
+.chapter[Count-Min Sketch]
+
+### Initialization
+
+<!--[PICTURE: HASH FUNCTIONS NOT AGAIN] -->
+
+Initialize an matrix of size `w × d` with zeroes
+ * this will be a "sketch" of our real data
+
+<table class='diagram'>
+<thead>
+  <tr>
+    <th colspan=5>sketch</th>
+  </th>
+</thead>
+<tbody>
+  <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+  <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+  <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+</tbody>
+</table>
+
+Choose `d` hash functions that return elements between `0` and `w - 1`
+
+Each hash function will generate indices in one row of the sketch
+
+
+*TODO PICTURE: results of applying the hash functions to a random value, somewhat overlapping the array to make it obvious that the results of the hash function are indices in the array*
+
+---
+.chapter[Count-Min Sketch]
+
+### Updating the sketch
+For every element in the stream
+ * Apply each hash function <code>h<sub>i</sub></code> to the element obtaining a value <code>d<sub>i</sub></code>
+ * On the <code>i<sup>th</sup></code> row of our array, at position <code>d<sub>i</sub></code>, increment with 1
+
+<table class="diagram">
+<thead>
+<tr><th>hashes</th></tr>
+</thead>
+<tbody>
+  <tr><td>h<sub>0</sub>(e) = 0</td></tr>
+  <tr><td>h<sub>1</sub>(e) = 4</td></tr>
+  <tr><td>h<sub>2</sub>(e) = 1</td></tr>
+</tbody>
+</table>
+<span style="height: 1em; display: inline-block; vertical-align: top; padding-top: 1.5em">+</span>
+<table class="diagram">
+<thead>
+  <tr>
+    <th colspan="5">old sketch</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td class='em'>0</td><td>2</td><td>1</td><td>3</td><td>3</td></tr>
+  <tr><td>1</td><td>3</td><td>1</td><td>4</td><td class='em'>0</td></tr>
+  <tr><td>3</td><td class='em'>1</td><td>1</td><td>0</td><td>4</td></tr>
+</tbody>
+</table>
+<span style="height: 1em; display: inline-block; vertical-align: top; padding-top: 1.5em">=></span>
+<table class="diagram">
+<thead>
+  <tr>
+    <th colspan="5">new sketch</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td class='em'>1</td><td>2</td><td>1</td><td>3</td><td>3</td></tr>
+  <tr><td>1</td><td>3</td><td>1</td><td>4</td><td class='em'>1</td></tr>
+  <tr><td>3</td><td class='em'>2</td><td>1</td><td>0</td><td>4</td></tr>
+</tbody>
+</table>
+</div>
+
+---
+.chapter[Count-Min Sketch]
+
+### Obtaining an estimate
+Given an element `e`
+ * Apply each hash function <code>h<sub>i</sub></code> to the element obtaining a value <code>d<sub>i</sub></code>
+ * Collect the value in the <code>i<sup>th</sup></code> row of our array, at position <code>d<sub>i</sub></code>
+ * Return the minimum of these values
+
+<table class="diagram">
+<thead>
+<tr><th>hashes</th></tr>
+</thead>
+<tbody>
+  <tr><td>h<sub>0</sub>(e) = 1</td></tr>
+  <tr><td>h<sub>1</sub>(e) = 3</td></tr>
+  <tr><td>h<sub>2</sub>(e) = 0</td></tr>
+</tbody>
+</table>
+<span style="height: 1em; display: inline-block; vertical-align: top; padding-top: 1.5em">indices in </span>
+<table class="diagram">
+<thead>
+  <tr>
+    <th colspan="5">sketch</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>0</td><td class='em'>2</td><td>1</td><td>3</td><td>3</td></tr>
+  <tr><td>1</td><td>3</td><td>1</td><td class='em'>4</td><td>0</td></tr>
+  <tr><td class='em'>3</td><td>1</td><td>1</td><td>0</td><td>4</td></tr>
+</tbody>
+</table>
+<span style="height: 1em; display: inline-block; vertical-align: top; padding-top: 1.5em">=</span>
+<table class="diagram">
+<thead>
+  <tr><th>values</th></tr>
+</thead>
+<tbody>
+  <tr><td>2</td></tr>
+  <tr><td>4</td></tr>
+  <tr><td>3</td></tr>
+</tbody>
+</table>
+</div>
+
+<code style="background-color: white !important">
+<em>estimated_occurances</em> = min([2, 4, 3]) = 2
+</code>
+
+
+---
+.chapter[Count-Min Sketch]
+
+## Notes
+
+Conflicts can exist
+* the more hash functions we have, the better
+* the wider the array, the better
+
+*TODO chart with precision vs number of hash functions*
+
+How to choose parameters:
+* *TODO explain better* The parameters w and d can be chosen by setting `w = [e/ε]` and `d = [ln 1/δ]`, where the error in answering a query is within a factor of `ε` with probability `1 − δ`.
+---
+.chapter[Count-Min Sketch]
+
+## Results
+
+*TODO Chart with results, estimates vs reality*
+
+---
+.chapter[Count-Min Sketch]
+
+## What hash functions to use?
+
+Multiplicative universal hashing<sup>*</sup>
+
+<code>h<sub>a</sub>(x) = (ax mod 2<sup>k</sup>) div 2<sup>k−ℓ</sup>, for 0 ≤ x < 2 </code>
+
+*Exploitable? Secure hash functions? ????*
+
+.footnote[<sup>*</sup>Dietzfelbinger et al. http://www.diku.dk/~jyrki/Paper/CP-11.4.1997.ps]
+---
+.chapter[Count-Min Sketch]
+
+## Space used
+
+For 1% error rate in 1B 64bit numbers, we get
+* d = *TODO*
+* w = *TODO*
+* each element = 32bit
+* total space used = *TODO*
+
+---
+.chapter[Count-Min Sketch]
+
+## Notes
+* Choose `w` and `d` wisely from the start
+* Can add-up multiple count-min sketches with the same size and same hash functions, just like we do Bloom Filters and HyperLogLogs
 
     </textarea>
     <script src="remark-latest.min.js">
