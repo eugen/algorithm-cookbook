@@ -101,9 +101,7 @@
 <img src="img/weird3.png" style="width: 30em">
 
 ---
-## What you *will* find instead
-
-### Algorihms that
+## Algorithms that are
 
 * applicable to *real problems*
 * implemented in less than *100 loc*
@@ -113,6 +111,8 @@
 class: center, middle
 
 ## Also they're *REALLY COOL*
+
+
 
 ---
 
@@ -134,31 +134,16 @@ class: center, middle
 <img src="img/alot.png">
 
 ---
-.chapter[Big data]
-
-Most correct algorithms have O(n) space complexity.
-* space requirements grow linearly with the data
-
-When n is big, this is a lot of space.
-
-*TODO graph with memory growth*
-
-*TODO graph with data size*
-
-One is exponential, the other was linear but is now logarithmic
-
-Even if storage is cheap, processing it is not
-
-Sometimes you simply can't store the data (e.g DDOS attacks)
-
----
 ## Probabilistic algorithms
 
 ### General ideas
-- *Streaming*: process data as it's coming in
 - *Sketches*: store only a rough description of the data
+- *Mostly correct*: answer with a certain probability of correctness
+- *Streaming*: process data as it's coming in
 
 ### Problems solved
+
+Given an endless stream of values
 
 - *Cardinality*: how many distinct elements have we seen?
 - *Membership*: has this value ever appeared in our stream?
@@ -193,7 +178,7 @@ Examples:
 
 #### Trees (of many types)
 
-As mentioned, all of these grow linearly with the size of the data.
+All of these grow linearly with the size of the data.
 
 ## Probabilistic solutions:
 
@@ -209,20 +194,22 @@ class: center, middle
 ---
 .chapter[HyperLogLog]
 
-Assume you're generating *uniformly distributed* random numbers.
+Assume we have a random number generator that generates *uniformly distributed* random numbers.
 
 ### Did you generate 2 numbers?
 
-In binary, probably one is 0xxx, the other is 1xxx
+In binary, probably one is `0xxx`, the other is `1xxx`
 
 ### What about 4 numbers?
 
-Probably they're 00xx, 01xx, 10xx, 11xx
+Probably they start with `00xx`, `01xx`, `10xx`, `11xx`
+
+<p style="text-align: right"><img style="width: 12em" src="img/bear_with_me.jpg"/></p>
 
 ---
 .chapter[HyperLogLog]
 
-### A list of uniformly distributed 2<sup>10</sup> numbers?
+### Generate a list of uniformly distributed 2<sup>10</sup> numbers?
 
 There's probably a number that starts with `0000 0000 00xx ...`
 
@@ -233,14 +220,14 @@ There's probably a number that starts with `0000 0000 00xx ...`
 
 Did we find the value `0000 0000 001x ...` in our stream?
 
-We'll assume there are around 2<sup>10</sup> numbers in there, give or take.
+It follows that there are around 2<sup>10</sup> numbers in there, give or take.
 
 ---
 class: center, middle
 
 .chapter[HyperLogLog]
 
-## Most common reaction
+## Most common reaction:
 <img src="jackie chan.jpg">
 
 ---
@@ -254,8 +241,8 @@ Imagine
 * repeat
 
 Someone tells you they did this a bunch of times and got:
-* longest streak is 2 heads ⇒ they probably did it only a few times
-* longest streak is 8 heads ⇒ wow they must have flipped that coin a lot
+* longest streak of 2 heads ⇒ they probably did it only a few times
+* longest streak of 8 heads ⇒ wow they must have flipped that coin a lot
 
 ---
 .chapter[HyperLogLog]
@@ -375,13 +362,16 @@ In our case, `n` is determined by the hash function and is usually <code>2<sup>6
 
 ## Space complexity
 
-*1K buckets*: `1024 * 6bits = 768bytes`
+*1 bucket:* <code>log<sub>2</sub>(log<sub>2</sub>(2<sup>64</sup>)) = 6</code> bits
+
+*1K buckets:* `1024 * 6bits = 768bytes`
 * error rate = *TODO*
 
-*16K buckets*: `16384 * 6bits = 12288bits = 12KB`
+*16K buckets:* `16384 * 6bits = 12288bits = 12KB`
 * error rate = *TODO*
 
-Can be even better by having sparse buckets if the cardinality is low.
+<br>
+*Note:* Can be even better by having sparse buckets if the cardinality is low.
 * redis switches automatically between sparse and dense bucket implementations.
 
 ---
@@ -413,7 +403,7 @@ class: center middle
 
 ##Problem: 
 
-###Given a large list of values, is X in that list?
+###Given a large list of values, is _X_ in that list?
 
 Examples:
 * When a user visits our page, is this his first visit?
@@ -428,18 +418,20 @@ Examples:
 #### Hash tables
 
 #### Trees
-* B-trees
 * balanced binary trees
+* B-trees
 * radix trees
-* treaps
 
-And again: All of these grow linearly with the size of the data.
+Again: All of these grow linearly with the size of the data.
 
-## Probabilistic solutions
+### Probabilistic solutions
 
-#### Bloom filter
+#### Bloom filters (and their many variants)
 
-#### Quotinet filter
+
+#### Quotient filter
+
+#### Cuckoo filter
 
 .footnote[*basically whatever is used to implement database indexes]
 ---
@@ -448,74 +440,74 @@ class: center, middle
 # Bloom filter
 
 ---
-.chapter[Membership - Bloom filters]
+.chapter[Bloom filters]
 
-Drawbacks:
+## Initialization
+
+#### Prepare list of `n` hash functions 
+
+Murmur3, Jenkins, SipHash, etc.
+
+#### Allocate an array of `n` elements of `k` bits
+
+This will store our sketch of the data
+
+Array with an entry for each hash function (this will be our sketch)
 
 ---
-.chapter[Membership - Bloom filters]
+.chapter[Bloom filters]
 
-## Several variations
-
-Stable bloom filters - duplicate detection
-
-Scalable bloom filters - discard old data
-
-Continuous bloom filter
+## Updating
+For every element in the stream:
+* Apply all hash functions to the element
+* For each hash, update the appropriate row in our sketch with binary or: row |= hash
 
 ---
-.chapter[Membership]
+.chapter[Bloom filters]
 
-Quotient filter
+## Testing membership
 
-An approximate member query (AMQ) filter used to speed up answers in a key-value storage system. Key-value pairs are stored on a disk which has slow access times. AMQ filter decisions are much faster. However some unnecessary disk accesses are made when the filter reports a positive (in order to weed out the false positives). Overall answer speed is better with the AMQ filter than without it. Use of an AMQ filter for this purpose, however, does increase memory usage.
+For a given element:
+* Apply all hash functions on the element
+* For each hash, test the appropriate row in our sketch with binary or: row_matches = row & hash
+* Return `true` when all rows match
+
+---
+.chapter[Bloom filters]
+
+## Many variations
+
+#### Stable bloom filters
+* *TODO WHAT IS THIS*
+
+#### Scalable bloom filters
+* *TODO WHAT IS THIS*
+
+#### Continuous bloom filter
+* *TODO WHAT IS THIS*
+
+---
+.chapter[Bloom filters]
+
+## Caveats
+
+* Only approximate answer
+* Require walking over the entire dataset to rebuild
+* Good theoretical complexity, large constant due to hashing
+
+## Alternatives
+
+Cuckoo filter probably better
+* Less available implementations
 
 ---
 class: center, middle 
 
-# Frequency
----
-
-##Problems:
-* How often does a given element appear in the list?
-* What elements appear most in the list?
-
-Examples:
-* A request comes in from IP address X. Is this IP hammering our API?
-* What are the top 10 IP addresses that hit us? What about the top 10 viewed articles?
-
-
----
-.chapter[Frequency]
-
-Correct solutions:
-
-#### Hash tables<sup>*</sup>
-
-#### Trees<sup>*</sup>
-
-
-
-.footnote[<sup>*</sup>no surprise, by now]
----
-
-# Common caveats
-
-* Only approximate answer
-* Inflexible
-* Require walking over the entire dataset to rebuild
-* Good theoretical complexity, large constant due to hashing
-* *Most importantly*, only apply for lots and lots of data
-
----
-class: center, middle
-#Frequency Estimation
+# Frequency Estimation
 ---
 .chapter[Frequency Estimation]
 
-## Problem:
-
-### How often do we see a specific value in a list of values?
+## Sample problems
 
 * How many requests has this IP done? Is it attacking us?
 * Is this one of the top most accessed articles?
@@ -544,10 +536,20 @@ class: center, middle
 
 ### Initialization
 
-*TODO PICTURE: HASH FUNCTIONS NOT AGAIN]*
+<img style="position: absolute; right: 1em; opacity: 0.3; margin-top: -1em; height: 14em" src="img/not_again.jpg">
 
-Initialize an matrix of size `w × d` with zeroes
- * this will be our "sketch" of the real data
+#### Pick `d` hash functions with outputs between `0` and <code>w = 2<sup>k</sup></code>
+
+Good fit: multiplicative universal hashing<sup>*</sup>
+
+<code>h<sub>a</sub>(x) = (a*x mod 2<sup>k</sup>) div 2<sup>k−ℓ</sup>, for 0 ≤ x < 2<sup>k</sup> </code>, where
+* `a` is a randomly chosen odd number between `0` and <code>2<sup>k</sup></code>
+* `ℓ` is a randomly chosen number between `1` and `k`
+
+For `d` hash functions, just pick an `ℓ` and `d` values for `a`.
+
+#### Initialize an matrix of size `w × d` with zeroes
+This will hold our *sketch* of the real data
 
 <table class='diagram'>
 <thead>
@@ -562,9 +564,9 @@ Initialize an matrix of size `w × d` with zeroes
 </tbody>
 </table>
 
-Choose `d` hash functions that return elements between `0` and `w - 1`
+Each hash function will generate indices in one row of the sketch
 
-Each hash function will generate indices in only one row of the sketch
+.footnote[<sup>*</sup>Dietzfelbinger et al. http://www.diku.dk/~jyrki/Paper/CP-11.4.1997.ps]
 
 ---
 .chapter[Count-Min Sketch]
@@ -685,18 +687,6 @@ How to choose parameters:
 ---
 .chapter[Count-Min Sketch]
 
-## What hash functions to use?
-
-Multiplicative universal hashing<sup>*</sup>
-
-<code>h<sub>a</sub>(x) = (ax mod 2<sup>k</sup>) div 2<sup>k−ℓ</sup>, for 0 ≤ x < 2 </code>
-
-*Exploitable? Secure hash functions? ????*
-
-.footnote[<sup>*</sup>Dietzfelbinger et al. http://www.diku.dk/~jyrki/Paper/CP-11.4.1997.ps]
----
-.chapter[Count-Min Sketch]
-
 ## Space used
 
 For 1% error rate in 1 billion 64bit numbers, we get
@@ -711,6 +701,11 @@ For 1% error rate in 1 billion 64bit numbers, we get
 ## Notes
 * Choose `w` and `d` wisely from the start
 * Can add-up multiple count-min sketches with the same size and same hash functions, just like we do Bloom Filters and HyperLogLogs
+
+---
+class: center, middle
+
+# Thanks!
 
     </textarea>
     <script src="remark-latest.min.js">
