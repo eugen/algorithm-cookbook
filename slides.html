@@ -65,6 +65,12 @@
       .remark-code, .remark-inline-code { 
         font-family: 'Ubuntu Mono'; 
       }
+      table.row {
+        border-collapse: collapse !important;
+      }
+      table.row td {
+        border: 1px solid #FF4500;
+      }
       table.diagram {
         border: 1px solid #FF4500;
         border-spacing: 0;
@@ -112,7 +118,7 @@ class: center, middle
 
 ## Also they're *REALLY COOL*
 
-
+<img src="img/spongebob_cool.jpg"/>
 
 ---
 
@@ -122,6 +128,8 @@ class: center, middle
 ### the correct way was the only way
 
 <img src='img/clint-eastwood.jpg'>
+
+Probabilistic algorithms were used mostly for NP-hard problems.
 
 ---
 
@@ -134,7 +142,7 @@ class: center, middle
 <img src="img/alot.png">
 
 ---
-## Probabilistic algorithms
+## Probabilistic streaming algorithms
 
 ### General ideas
 - *Sketches*: store only a rough description of the data
@@ -289,12 +297,16 @@ class: center, middle
 .chapter[HyperLogLog]
 
 ## Run it multiple times
-- `m` buckets
-- assign each hash to a bucket
-- average results from all buckets to get the result
-  - harmonic mean smoothes out outliers
+* Use `m` buckets
+* Assign each hashed value to a bucket
+* Average results from all buckets to get the result
 
-[FORMULA WITH THE SUM FROM ALL BUCKETS, what harmonic mean is]
+$$harmonic\\_mean = { m \over { {1 \over count_1} + {1 \over count_2} + ... + {1 \over count_m}} }$$
+
+<!-- $$count = {m \over {\sum_{i=1}^{m}} {1 \over count_i} }$$ -->
+
+*Note:* Using the harmonic mean smoothes out outliers.
+
 
 ---
 .chapter[HyperLogLog]
@@ -306,7 +318,16 @@ Round robin? Requires state, not ideal.
 Just use the first <code>log<sub>2</sub>(m)</code> bits of the hash to pick the bucket.
 * e.g for 1024 buckets use the first 10 bits
 
-[graph with pickign first 10 bits]
+<table class='row'><tr>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+</tr></table>
 
 ---
 .chapter[HyperLogLog]
@@ -708,8 +729,8 @@ class: center, middle
 # Thanks!
 
     </textarea>
-    <script src="remark-latest.min.js">
-    </script>
+    <script src="remark-latest.min.js"></script>
+    <script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
     <script>
       var slideshow = remark.create();
     </script>
