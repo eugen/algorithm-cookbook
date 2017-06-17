@@ -100,46 +100,34 @@
   <body>
     <textarea id="source">
 
-## What you won't find here
-
-<img src="img/weird2.png" style="width: 25em">
-<img style="width:20em" src="hll_alpham.png"/>
-<img src="img/weird3.png" style="width: 30em">
-
----
-## Algorithms that are
-
-* applicable to *real problems*
-* implemented in less than *100 loc*
-* *usefulness* far outweiging complexity
-
----
 class: center, middle
 
-## Also they're *REALLY COOL*
-
-<img src="img/spongebob_cool.jpg"/>
-
+# Intro
 ---
-
-class: center, middle
-
 ## The good old days 
-### the correct way was the only way
+### The correct way or the highway
 
-<img src='img/clint-eastwood.jpg'>
+<img src='img/clint-eastwood.jpg' style="width: 18em">
 
-Probabilistic algorithms were used mostly for NP-hard problems.
+Probabilistic algorithms limited mostly to games and NP-hard problems.
+
+???
+
+Game developers of the past weren't stupid, they just have tighter constraints. It's no like they didn't want to do it correctly, they just couldn't. Same with big data.
 
 ---
-
 class: center, middle
 
-## What changed this?
-
-### ALOT of data
+## BIG DATA<sup>&trade;</sup> changed things
 
 <img src="img/alot.png">
+
+Too expensive to do it correctly.
+
+???
+
+Too expensive: both time and space
+
 
 ---
 ## Probabilistic streaming algorithms
@@ -158,14 +146,9 @@ Given an endless stream of values
 - *Frequency*: how often does this value appear in the stream?
 
 ---
-class: center, middle
-
-# Cardinality
-
----
 .chapter[Cardinality]
 
-## Problem: 
+## Cardinality
 ### Given a list `n` values, how many of them are distinct?
 
 Examples:
@@ -180,19 +163,16 @@ Examples:
 
 ## Correct solutions:
 
-#### Bitmap
-
-#### Hash table
-
-#### Trees (of many types)
+* Bitmap
+* Hash table
+* Trees
 
 All of these grow linearly with the size of the data.
 
 ## Probabilistic solutions:
 
-#### Linear counting
-
-#### HyperLogLog
+* Linear counting
+* HyperLogLog
 
 ---
 class: center, middle
@@ -204,7 +184,7 @@ class: center, middle
 
 Assume we have a random number generator that generates *uniformly distributed* random numbers.
 
-### Did you generate 2 numbers?
+### Generate 2 numbers:
 
 In binary, probably one is `0xxx`, the other is `1xxx`
 
@@ -212,31 +192,20 @@ In binary, probably one is `0xxx`, the other is `1xxx`
 
 Probably they start with `00xx`, `01xx`, `10xx`, `11xx`
 
-<p style="text-align: right"><img style="width: 12em" src="img/bear_with_me.jpg"/></p>
-
----
-.chapter[HyperLogLog]
-
-### Generate a list of uniformly distributed 2<sup>10</sup> numbers?
+### Generate 2<sup>10</sup> uniformly distributed numbers?
 
 There's probably a number that starts with `0000 0000 00xx ...`
 
 ---
 .chapter[HyperLogLog]
 
-### Going the other way
+### Going the other way around
 
-Did we find the value `0000 0000 001x ...` in our stream?
+Search for the number that starts with the most zeroes (i.e smallest number).
+
+Is it `0000 0000 001x ...`?
 
 It follows that there are around 2<sup>10</sup> numbers in there, give or take.
-
----
-class: center, middle
-
-.chapter[HyperLogLog]
-
-## Most common reaction:
-<img src="jackie chan.jpg">
 
 ---
 .chapter[HyperLogLog]
@@ -255,25 +224,19 @@ Someone tells you they did this a bunch of times and got:
 ---
 .chapter[HyperLogLog]
 
-Without further ado, the LogLog<sup>*</sup> algorithm:
+## The LogLog<sup>*</sup> algorithm:
 - for each value:
   - apply a hash function (eg Murmur, SipHash, Tiger)
   - count the number of leading zeroes in the hash
 - remember the maximum number of leading zeroes from all values
 - <code>cardinality = 2<sup>max_zeroes</sup></code>
 
-*Important*: Pick a hash function that uniformly distributes results!
-
 .footnote[<sup>*</sup>Also called FM Sketch]
----
-class: center
-.chapter[HyperLogLog]
 
-## I promise it works
+???
 
-<img src="magic.jpg">*
+The hash function must uniformly distributes results!
 
-.footnote[`s/MAGIC/MATH`]
 ---
 .chapter[HyperLogLog]
 
@@ -281,53 +244,39 @@ class: center
 * The standard deviation is a few orders of magnitude.
 * It only returns powers of two
 * Outliers completely mess up the result
- * If for a given value our hash function returns 0, the algorithms believes there are 2<sup>65</sup> unique values.
+ * If for a given value our hash function returns 0, the algorithms believes there are 2<sup>64</sup> unique values.
+
+???
 
 [LOGARITHMIC BAR CHART showing the average error for N runs]
 
 ---
-class: center, middle
 .chapter[HyperLogLog]
-
-### How do we make it better?
 
 # Make it Hyper!
-
----
-.chapter[HyperLogLog]
 
 ## Run it multiple times
 * Use `m` buckets
 * Assign each hashed value to a bucket
 * Average results from all buckets to get the result
 
-$$harmonic\\_mean = { m \over { {1 \over count_1} + {1 \over count_2} + ... + {1 \over count_m}} }$$
+$$result = { m \over { {1 \over count_1} + {1 \over count_2} + ... + {1 \over count_m}} }$$
 
 <!-- $$count = {m \over {\sum_{i=1}^{m}} {1 \over count_i} }$$ -->
 
-*Note:* Using the harmonic mean smoothes out outliers.
+???
 
+*Note:* Using the harmonic mean smoothes out outliers.
 
 ---
 .chapter[HyperLogLog]
 
 ## How to pick the bucket?
 
-Round robin? Requires state, not ideal.
+Round-robin requires state, not ideal.
 
 Just use the first <code>log<sub>2</sub>(m)</code> bits of the hash to pick the bucket.
 * e.g for 1024 buckets use the first 10 bits
-
-<table class='row'><tr>
-<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-</tr></table>
 
 ---
 .chapter[HyperLogLog]
@@ -361,7 +310,7 @@ class: center
 
 ## More magic!
 
-###...It's ok, just multiply with 0.7212.
+###...It's fine, just multiply with 0.7212.
 
 <img src="img/spongebob-math.jpg"/>
 
@@ -373,9 +322,9 @@ class: center
 If hash values are values between `1` and `n`
 * storing one such value: <code>log<sub>2</sub>(n)</code> bits
 * storing the number of leading zeroes: <code>log<sub>2</sub>(log<sub>2</sub>(n))</code> bits
-* multiplied by `m`, the number of buckets, but `m` is constant
+* multiplied by `m`, the number of buckets
 
-In our case, `n` is determined by the hash function and is usually <code>2<sup>64</sup></code> or  <code>2<sup>32</sup></code>
+Most commonly used hash functions have 64 or 32 bit outputs.
 
 .footnote[This is where the "LogLog" part comes from]
 ---
@@ -393,7 +342,6 @@ In our case, `n` is determined by the hash function and is usually <code>2<sup>6
 
 <br>
 *Note:* Can be even better by having sparse buckets if the cardinality is low.
-* redis switches automatically between sparse and dense bucket implementations.
 
 ---
 .chapter[HyperLogLog]
@@ -409,20 +357,14 @@ In our case, `n` is determined by the hash function and is usually <code>2<sup>6
 * useful in distributed systems
 
 #### Some assembly required
-- choosing a weak hash function might make it exploitable to grossly over estimation
+- choosing a weak hash function might make it vulnerable to grossly over estimating
 - for small number of elements it's better to switch to something else, e.g linear counting
 
-#### Directly available in Redis
-
 ---
-class: center middle 
 
-# Membership
-
----
 .chapter[Membership]
 
-##Problem: 
+# Membership
 
 ###Given a large list of values, is _X_ in that list?
 
@@ -436,25 +378,22 @@ Examples:
 
 ## Correct solutions<sup>*</sup>
 
-#### Hash tables
+* Hash tables
+* Trees of many kind
 
-#### Trees
-* balanced binary trees
-* B-trees
-* radix trees
-
-Again: All of these grow linearly with the size of the data.
+Just as before, these grow linearly with the size of the data.
 
 ### Probabilistic solutions
 
-#### Bloom filters (and their many variants)
-
-
-#### Quotient filter
-
-#### Cuckoo filter
+* Bloom filters (and their many variants)
+* Quotient filter
+* Cuckoo filter
 
 .footnote[*basically whatever is used to implement database indexes]
+
+???
+
+Tree types: balanced binary, radix trees, B-trees
 ---
 class: center, middle
 
@@ -490,8 +429,13 @@ For every element in the stream:
 
 For a given element:
 * Apply all hash functions on the element
-* For each hash, test the appropriate row in our sketch with binary or: row_matches = row & hash
-* Return `true` when all rows match
+* For each hash result, test the appropriate row in our sketch with binary or: `row_matches = row & hash`
+* If all rows match, return `true` 
+
+---
+.chapter[Bloom filters]
+
+Complexity
 
 ---
 .chapter[Bloom filters]
@@ -512,40 +456,39 @@ For a given element:
 
 ## Caveats
 
-* Only approximate answer
 * Require walking over the entire dataset to rebuild
-* Good theoretical complexity, large constant due to hashing
+* Good theoretical time complexity, but large constant due to hashing
 
 ## Alternatives
 
-Cuckoo filter probably better
+Cuckoo filter getting more attention
 * Less available implementations
 
 ---
-class: center, middle 
-
-# Frequency Estimation
----
 .chapter[Frequency Estimation]
 
-## Sample problems
+# Frequency Estimation
 
-* How many requests has this IP done? Is it attacking us?
+## How often has this value appeared before?
+
+Examples:
+* How many requests has this IP done? 
 * Is this one of the top most accessed articles?
 * How often is this exception occuring in the logs?
 
 ---
 .chapter[Frequency Estimation]
 
-## Correct Solutions
+## Correct Solutions 
 
-#### Hash table
-#### Many kinds of trees
+Not much of a surprise by now:
+* Hash table
+* Many kinds of trees
 
 ## Probabilistic Solutions
 
-#### Count-Min Sketch
-#### Lossy Count
+* Count-Min Sketch
+* Lossy Count
 
 ---
 class: center, middle
